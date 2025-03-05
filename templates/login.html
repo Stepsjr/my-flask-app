@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block part %}
+    
+    <div class="pic_2"></div>
+        <div class="login-form">
+            <h1>Login</h1>
+            <form action="/login" method="post" id="login-form">
+                <p class="pp">Username</p>
+                <input name="username" type="text" placeholder="Username" autocomplete="off" autofocus id="username">
+                <p class="pp">Password</p>
+                <input name="password" type="password" placeholder="Password" autocomplete="off" id="password" >
+                <div id="p-div">
+                    <p id="p"></p>
+                </div>
+                <button  type="submit" >Login</button>
+                
+            </form>
+            </div>
+   
+    <script>
+        
+        document.getElementById("login-form").addEventListener("submit", async function(event) {
+        // Prevent form from submitting
+        event.preventDefault();
+
+        // Get elements
+        let p = document.getElementById("p");
+        let username = document.getElementById("username");
+        let password = document.getElementById("password");
+
+        // Make fetch request
+        let response = await fetch('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username.value,
+                password: password.value
+            })
+        });
+
+        if(response.redirected){
+            window.location.href = response.url
+        }
+
+        else{
+
+            let valid = await response.json();
+
+            // Display message
+            p.innerHTML = Object.values(valid)[0] || "Login failed";
+
+            // Optional: Clear input fields
+            username.value = "";
+            password.value = "";
+        }
+        
+    });
+        
+        
+        
+    </script>
+
+{% endblock %}

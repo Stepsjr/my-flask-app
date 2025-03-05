@@ -1,0 +1,10 @@
+Flask
+Flask-Session
+Flask-SocketIO
+mysql-connector-python
+Werkzeug
+python-dotenv
+eventlet
+gevent
+gevent-websocket
+gunicorn

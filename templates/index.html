@@ -1,0 +1,949 @@
+{% extends "layout.html" %}
+
+{% block part %}
+
+ <div class="container">
+    <div class="left" id="left">
+      <div id="left_inner_header">
+         <div id="search_input">
+            <input type="search" placeholder="Search" autocomplete="off" id="search_users">
+         </div>
+         <div id="toggle_div">
+               <i class="fa-solid fa-user" id="fa-user"></i>
+            <div class="toggle">
+               <input type="checkbox" id="toggle_input">
+               <label for="toggle_input" class="toggle_button"></label>
+            </div>
+            <i class="fa-solid fa-users" id="fa-users"></i>
+         </div>
+         <i class="fa-solid fa-user-plus " id="fa-user-plus" onclick="group()"></i>
+         
+      </div>
+      
+      <div id="left_activity">
+         {% for user in users%}
+            {% if user[1] != user_info[1] %}
+            <div id="user">
+               <div id="pic" onclick="pic(this)"><img id="img_2" src="{{ url_for('static', filename='') }}{{user[3]}}"   alt="profile" >
+               </div>
+               <div id="not-pic" data-receiver="{{user[0]}}" onclick="preview(this)"><h2>{{user[1]}}</h2></div>
+               
+            </div>
+            {% endif %}
+        {% endfor %}
+      </div>
+  
+    </div>
+    <div class="middle">
+         <h3 id="h3"> Profile</h3>
+        
+         <div id="profile_pic"><img id="img_3" src="{{url_for('static', filename='')}}{{user_info[3]}}" alt="profile">
+            
+            <label for="change_profile" id="profile-lable"><i class="fa-regular fa-pen-to-square"></i></label>
+            <input type="file" accept="image/*" id="change_profile" style="display: none">
+            {% if user_info[3] != 'images/profile_pictures/default.jpg'%}
+
+            <i class="fa-solid fa-trash" id="delete_pp" onclick="delete_pp()"></i>
+
+            {% endif %}
+         </div>
+         <h3 id="h3_2">{{user_info[1]}}</h3>
+        <ul id="online"></ul>
+    </div>
+    <div class="right">
+      <div id="header">
+         <div id="header_pic">
+            <!-- <img id="header_img" src="{{url_for('static', filename='images/profile_pictures/default.jpg')}}" alt="Profile"> -->
+         </div>
+         <h1 id="name"></h1>
+      </div>
+      <div id="chat"></div>
+      <div id="bottom"> 
+         
+      </div>
+    </div>
+ </div>
+ 
+
+ 
+ <script type="text/javascript" charset="utf-8">
+   var socket = io();
+
+   socket.on('online',(data) => {
+      let users = [...document.querySelectorAll("#not-pic")];
+      let status = document.getElementById("status")
+            if(status){
+               status.remove()
+            }
+      data.forEach(x => {
+         if (String(x) != '{{user_info[0]}}'){
+            let div = users.find(user => user.dataset.receiver === String(x));
+            
+            if (div){
+               let parent = div.parentElement;
+               let check = parent ? parent.querySelector("#status"):null;
+               if(check){
+                  
+               }
+               else{
+                  newdiv = document.createElement("div");
+                  newdiv.id = "status"
+               
+                  parent.appendChild(newdiv);
+               }
+            }
+            
+            
+         }
+         
+      })
+   });
+
+
+   let input = document.getElementById("search_users")
+   input.addEventListener('input', async function(){
+      let checkbox = document.getElementById("toggle_input")
+      let left_activity = document.getElementById("left_activity")
+      if(!checkbox.checked){
+
+         try{
+         let response = await fetch("/search?users=" + input.value.trim())
+
+         if(!response.ok){
+            console.log("Problem getting the data")
+         }
+
+         let data = await response.json()
+         
+         left_activity.innerHTML = ''
+         for(let profile of data){
+            if (profile[0] != '{{user_info[0]}}'){
+               let user = document.createElement("div")
+            user.id = "user"
+
+            let image = document.createElement("img")
+            image.id = "img_2"
+            image.src = `static/${profile[3]}`
+            image.alt = "profile"
+            
+
+            let pic = document.createElement("div")
+            pic.id = "pic"
+            pic.setAttribute("onclick", "pic(this)")
+            
+
+            let not_pic = document.createElement("div")
+            not_pic.id = "not-pic"
+            not_pic.setAttribute("data-receiver", profile[0])
+            not_pic.innerHTML = `<h2>${profile[1]}</h2>`
+            not_pic.setAttribute("onclick", "preview(this)");
+
+
+            pic.appendChild(image)
+            user.appendChild(pic)
+            user.appendChild(not_pic)
+            left_activity.appendChild(user)
+            }
+            
+         }
+
+         }
+         catch (error){
+            console.error("Error in getting data",error)
+         }
+
+      }
+
+      if(checkbox.checked){
+         try{
+            let response = await fetch('/search?groups=' + input.value.trim()) 
+            if(!response.ok){
+               throw new Error("error reciving the data") 
+            }
+            
+
+            let groups = await response.json();
+
+            left_activity.innerHTML = '';
+            let check = {};
+            for( let group of groups){
+            if (group[1] in check && check[group[1]] == 3  ){
+               continue;
+            }
+
+            else{
+
+               if (group[1] in check){
+                     div =  document.querySelector(`[data-room = "${group[1]}"]`)
+                     let parent = div.parentElement;
+                     let innerdiv = parent.children[0];
+                     img = document.createElement("img")
+                     innerdiv.appendChild(img)
+                     img.src = `static/${group[8]}`
+                     img.alt = "profile"
+                     check[group[1]] += 1
+                     img.id = "img" + check[group[1]] //add 3 users to the div
+                     
+            
+               }
+               else{
+                     let div = document.createElement("div")
+                     div.id = "user"
+
+                     let innerdiv = document.createElement("div")
+                     innerdiv.id = "pic_2"
+                     innerdiv.setAttribute("onclick", "pic_2(this)")
+
+                     img  = document.createElement("img")
+                     img.src = `static/${group[8]}`
+                     img.alt = "profile"
+
+                     let innerdiv_2 = document.createElement("div")
+                     innerdiv_2.id = "not-pic"
+                     innerdiv_2.setAttribute("data-room",group[1] )
+                     innerdiv_2.setAttribute("onclick", "preview(this)")
+                     innerdiv_2.innerHTML = `<h2>${group[2]}</h2>`
+
+                     
+                     
+                     innerdiv.appendChild(img)
+                     div.appendChild(innerdiv)
+                     div.appendChild(innerdiv_2)
+                     
+                     
+                     check[group[1]] = 1
+                     img.id = "img" + check[group[1]]
+                     left_activity.appendChild(div)
+               }
+
+               }
+            }
+
+         }
+         catch(error){
+            console.error("Error in getting data", error)
+         }
+         
+      }
+     
+      
+
+   })
+
+   document.getElementById("toggle_input").addEventListener('change', async function(){
+      let user = document.getElementById("fa-user");
+      let users = document.getElementById("fa-users");
+      let left = document.getElementById("left_activity");
+
+      if (this.checked){
+         if(document.getElementById("left_inner_header_2")){
+            document.getElementById("left_inner_header_2").remove()
+         }
+         document.getElementById("search_users").value = "";
+         user.style.color = "black";
+         users.style.color = "rgba(0, 255, 255, 0.6)"
+         let response = await fetch ('/users?groups='+ 'group')
+         if (response.ok){
+            let groups = await response.json();
+
+            left.innerHTML = '';
+            let check = {};
+            for( let group of groups){
+            if (group[1] in check && check[group[1]] == 3  ){
+               continue;
+            }
+
+            else{
+
+               if (group[1] in check){
+                     div =  document.querySelector(`[data-room = "${group[1]}"]`)
+                     let parent = div.parentElement;
+                     let innerdiv = parent.children[0];
+                     img = document.createElement("img")
+                     innerdiv.appendChild(img)
+                     img.src = `static/${group[8]}`
+                     img.alt = "profile"
+                     check[group[1]] += 1
+                     img.id = "img" + check[group[1]] //add 3 users to the div
+                     
+            
+               }
+               else{
+                     let div = document.createElement("div")
+                     div.id = "user"
+
+                     let innerdiv = document.createElement("div")
+                     innerdiv.id = "pic_2"
+                     innerdiv.setAttribute("onclick", "pic_2(this)")
+
+                     img  = document.createElement("img")
+                     img.src = `static/${group[8]}`
+                     img.alt = "profile"
+
+                     let innerdiv_2 = document.createElement("div")
+                     innerdiv_2.id = "not-pic"
+                     innerdiv_2.setAttribute("data-room",group[1] )
+                     innerdiv_2.setAttribute("onclick", "preview(this)")
+                     innerdiv_2.innerHTML = `<h2>${group[2]}</h2>`
+
+                     
+                     
+                     innerdiv.appendChild(img)
+                     div.appendChild(innerdiv)
+                     div.appendChild(innerdiv_2)
+                     
+                     
+                     check[group[1]] = 1
+                     img.id = "img" + check[group[1]]
+                     left.appendChild(div)
+               }
+
+            }
+}
+         }
+         
+      
+      }
+      else{
+         document.getElementById("search_users").value = "";
+         user.style.color = "rgba(0, 255, 255, 0.6)"
+         users.style.color = "black";
+         left.innerHTML = '';
+         
+         let response = await fetch("/users?individuals=" + "users")
+
+         if (response.ok){
+
+            let data = await response.json()
+            let left_activity = document.getElementById("left_activity")
+            for(let profile of data){
+               if (profile[0] != '{{user_info[0]}}'){
+                  let user = document.createElement("div")
+               user.id = "user"
+
+               let image = document.createElement("img")
+               image.id = "img_2"
+               image.src = `static/${profile[3]}`
+               image.alt = "profile"
+               
+
+               let pic = document.createElement("div")
+               pic.id = "pic"
+               pic.setAttribute("onclick", "pic(this)")
+               
+
+               let not_pic = document.createElement("div")
+               not_pic.id = "not-pic"
+               not_pic.setAttribute("data-receiver", profile[0])
+               not_pic.innerHTML = `<h2>${profile[1]}</h2>`
+               not_pic.setAttribute("onclick", "preview(this)");
+
+
+               pic.appendChild(image)
+               user.appendChild(pic)
+               user.appendChild(not_pic)
+               left_activity.appendChild(user)
+               }
+               
+            }
+            
+         }
+
+         //start
+
+         try{
+            let respo = await fetch('/onlinee')
+            if(!respo.ok){
+               throw new Error("Error while fetching")
+            }
+
+            let ppl = await respo.json()
+            
+            let users = [...document.querySelectorAll("#not-pic")];
+            let status = document.getElementById("status")
+            if(status){
+               status.remove()
+            }
+            
+            ppl.forEach(x => {
+            if (String(x) != '{{user_info[0]}}'){
+            let div = users.find(user => user.dataset.receiver === String(x));
+            console.log(users)
+            console.log(div)
+            if (div){
+               
+               let parent = div.parentElement;
+               let check = parent ? parent.querySelector("#status"):null;
+               if(check){
+                  
+               }
+               else{
+                  let newdiv = document.createElement("div");
+                  newdiv.id = "status"
+               
+                  parent.appendChild(newdiv);
+               }
+            }
+            }
+            })
+            
+         }//ju
+
+         catch(error){
+            console.error("error in fetching data", error)
+         }
+         
+      }
+      
+   })
+
+   async function preview(element){
+      if (element.children.length == 2){
+         element.removeChild(element.lastChild)
+         
+         
+         
+      }
+      let chat = document.getElementById("chat")
+      let header_pic;
+      if(document.querySelector("#header_pic")){
+         header_pic = document.getElementById("header_pic");
+
+      }
+      else{
+         header_pic = document.querySelector("#header_pic_group");
+      }
+
+     
+      if (chat.hasChildNodes()){
+         chat.innerHTML = "";
+      }
+      name = element.children[0].innerHTML;
+      document.getElementById("name").innerHTML = name;
+      let bottom = document.getElementById("bottom")
+      bottom.innerHTML = ` <textarea id="message" autocomplete="off" type="text" placeholder="Message" data-receiver="${element.dataset.receiver}" autofocus > </textarea>    <button id="send" onclick="send()"><i class="fa-solid fa-paper-plane"></i></button>`;
+      let checkbox = document.getElementById("toggle_input")
+
+      if(!checkbox.checked && element.dataset.receiver)
+      {
+         bottom.innerHTML = ` <textarea id="message" autocomplete="off" type="text" placeholder="Message" data-receiver="${element.dataset.receiver}" autofocus > </textarea>    <button id="send" onclick="send()"><i class="fa-solid fa-paper-plane"></i></button>`;
+
+         try{
+            let response = await fetch("/history",{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({recipient:element.dataset.receiver})
+            });
+            if (!response.ok) throw new Error('Failed to fetch history');
+            let data = await response.json();
+            
+            
+            if (header_pic.hasChildNodes())
+            {
+               header_pic.innerHTML = "";
+            }
+            
+            if(header_pic.id != 'header_pic'){
+               header_pic.id = 'header_pic';
+            }
+            
+            img = document.createElement("img");
+            img.id = "header_img";
+            img.src = `static/${data[1]}`
+            img.alt = "Profile"
+            header_pic.appendChild(img);
+            
+            
+            for (let message of data[0]){
+               let text = cleanerHTML(message);
+               if (text[2] == "{{user_info[0]}}"){
+                  let div = document.createElement("div");
+                  div.id = "text_right"
+                  div.innerHTML = `<p><strong>You: </strong>${text[3]}</p>`
+                  chat.appendChild(div)
+               }
+               else{
+                  let div = document.createElement("div");
+                  div.id = "text_left"
+                  div.innerHTML = `<p><strong>${name}: </strong>${text[3]}</p>`
+                  chat.appendChild(div)
+               }
+
+               chat.scrollTop = chat.scrollHeight;
+               
+            }
+         
+         }
+         catch(error){
+            console.error('Error in fetching data:',error);
+         }
+
+      }
+
+      else if(checkbox.checked && element.dataset.room){
+         bottom.innerHTML = ` <textarea id="message" autocomplete="off" type="text" placeholder="Message" data-room="${element.dataset.room}" autofocus > </textarea>    <button id="send" onclick="send()"><i class="fa-solid fa-paper-plane"></i></button>`;
+         try{
+            let response = await fetch("/history",{
+               method:["POST"],
+               headers:{'Content-Type':'application/json'},
+               body:JSON.stringify({room: element.dataset.room})
+            });
+
+            if(!response.ok) throw new Error('Error reciving the data');
+            data_2 = await response.json();
+            if(header_pic.hasChildNodes()){
+               header_pic.innerHTML = '';
+            }
+            let pic = element.parentElement.children[0]
+            // let div_3 = document.createElement("div")
+            header_pic.id = "header_pic_group"
+            counter = 0
+            for(let i of pic.children){
+               img = document.createElement("img")
+               img.id =  `img_header_${counter}`
+               img.src = i.src
+               img.alt = i.alt
+               header_pic.appendChild(img);
+               
+               counter += 1;
+            }
+            // header_pic.innerHTML = pic.innerHTML
+            // header_pic.appendChild(div_3)
+            for(let message_2 of data_2){
+               let text_2 = cleanerHTML(message_2)
+               if(text_2[2] == '{{user_info[0]}}'){
+                  div_2 = document.createElement("div")
+                  div_2.id = "text_right"
+                  div_2.innerHTML = `<p> <strong>You:</strong>${text_2[3]}</p>`
+                  chat.appendChild(div_2)
+               }
+               else{
+                  div_2 = document.createElement("div")
+                  div_2.id = "text_left"
+                  div_2.innerHTML = `<p><strong>${text_2[6]}:</strong>${text_2[3]}</p>`
+                  chat.appendChild(div_2)
+               }
+               chat.scrollTop = chat.scrollHeight;
+            }
+         }
+
+         catch (error){
+            console.error('Error in fetching data:', error);
+         }
+      }
+      
+      
+
+
+   };
+   function cleanerHTML(messages){
+      new_messages = []
+      messages.forEach(message =>{
+         if (typeof message !== 'string'){
+         message = String(message);
+      }
+            new_messages.push(message.replace(/&/g, "&amp")
+               .replace(/</g, "&lt;")
+               .replace(/>/g, "&gt;")
+               .replace(/"/g, "&quot;")
+               .replace(/'/g, "&#039;"));
+      });
+         return new_messages;
+         }
+
+   function send(){
+      let input = document.getElementById("message")
+      let chat= document.getElementById("chat")
+      let message = input.value.trim();
+      if (input.dataset.receiver){
+      
+         let receiver = Number(input.dataset.receiver);
+         if (message && receiver) {
+            socket.emit('private_message',{message,receiver });
+            let div = document.createElement("div");
+                  div.id = "text_right"
+                  div.innerHTML = `<p><strong>You: </strong>${message}</p>`
+                  chat.appendChild(div)
+                  chat.scrollTop = chat.scrollHeight;
+            input.value = "";
+         }
+      }
+      else if (message && input.dataset.room){
+         let room = Number(input.dataset.room)
+         socket.emit('private_message', {message, room});
+         let div =  document.createElement("div")
+         div.id ="text_right"
+         text = message.replace(/&/g, "&amp")
+               .replace(/</g, "&lt;")
+               .replace(/>/g, "&gt;")
+               .replace(/"/g, "&quot;")
+               .replace(/'/g, "&#039;");
+         div.innerHTML = `<p> <strong>You: </strong>${text}</p>`
+         chat.appendChild(div)
+         chat.scrollTop = chat.scrollHeight
+         input.value = ""
+      }
+      
+   }
+
+   socket.on('private_message',(data) =>{
+      let chat= document.getElementById("chat")
+      let element = document.getElementById("message");
+      let input = element ? element.dataset.receiver: null;
+      if (input){
+         if (input == data.sender_id){
+            let div = document.createElement("div");
+               div.id = "text_left"
+               div.innerHTML = `<p><strong>${data.sender}: </strong>${data.message}</p>`
+               chat.appendChild(div)
+               chat.scrollTop = chat.scrollHeight;
+         }
+         else{
+            
+            let users = [...document.querySelectorAll("#not-pic")];
+            let div = users.find(user => user.dataset.receiver == data.sender_id);
+            if (div){
+               if (div.children.length == 2){
+               
+               }
+               else{
+                  div.innerHTML += `<strong>(New Message)</strong>`;
+               }
+            }
+         }
+      }
+      
+      else{
+         let users = [...document.querySelectorAll("#not-pic")];
+         let div = users.find(user => user.dataset.receiver == data.sender_id);
+         if (div){
+            if (div.children.length == 2){
+               
+            }
+            else{
+               div.innerHTML += `<strong>(New Message)</strong>`;
+            }
+            
+         }
+      }
+   })
+
+   socket.on('group_message', (data) =>{
+      if(data.sender != '{{user_info[1]}}'){
+
+      let toggle_input = document.getElementById("toggle_input")
+      let chat= document.getElementById("chat")
+      let element = document.getElementById("message");
+      if (toggle_input.checked){
+         
+        
+         if(element){
+            if (element.dataset.room && element.dataset.room == data.room){
+               message = document.createElement("div")
+               message.innerHTML = `<p><strong>${data.sender}:</strong>${data.message}</p>`
+               message.id = "text_left"
+               chat.appendChild(message)
+               chat.scrollTop = chat.scrollHeight;
+
+            }
+            else{
+               let groups = [...document.querySelectorAll("#not-pic")]
+               let div = groups.find(group => group.dataset.room == data.room)
+               if(div){
+                  if(div.children.length != 2)
+                  {
+                     div.innerHTML += `<p>New Message</p>`;
+                  }
+               }
+
+            }
+         }
+         else{
+               let groups = [...document.querySelectorAll("#not-pic")]
+               let div = groups.find(group => group.dataset.room == data.room)
+               if(div){
+                  if(div.children.length != 2)
+                  {
+                     div.innerHTML += `<p>New Message</p>`;
+                  }
+               }
+
+            }
+      }
+      
+         
+
+
+      }
+   })
+
+   document.getElementById('change_profile').addEventListener('change',async function(){
+      let element = document.getElementById("profile_pic")
+      const file = this.files[0];
+      
+      if (file){
+         const formData = new FormData();
+      
+         formData.append('profile_picture', file);
+         try{
+            const response = await fetch('/update_profile_picture',{
+               method:'POST',
+               body:formData
+         }) 
+            let data = await response.json();
+            if (response.ok){
+               let picture = `static/${data.path}`;
+               document.getElementById('img_3').src = picture;
+               if (!document.getElementById("delete_pp")){
+                  
+                  element.insertAdjacentHTML('beforeend', `<i class="fa-solid fa-trash" id="delete_pp" onclick="delete_pp()"></i>`);
+               }
+               
+            }
+            
+         }
+
+         catch(error){
+            console.error("problem with fetching data",error)
+         }
+      }
+      
+      this.value = "";
+      
+   });
+   
+      
+   async function delete_pp(){
+      try{
+         let response = await fetch("/update_profile_picture",{
+            method :"POST",
+            headers:{"Content-Type" : "application/json"},
+            body:JSON.stringify({delete_pp : "a"})
+         })
+
+         if(!response.ok) throw new Error("Error reciving the data")
+         let data = await response.json()
+         document.getElementById("img_3").src = `static/${data.path}`
+         if (document.getElementById("delete_pp")){
+            document.getElementById("delete_pp").remove()
+         }
+         
+      }
+
+      catch (error){
+         console.error("error in fetching data:",error)
+      }
+      document.getElementById('change_profile').value = ""
+      
+   }
+
+   function pic(element){
+      if(document.getElementById("preview_div")){
+         document.getElementById("preview_div").remove()
+      }
+      let = container = document.querySelector(".container")
+      let div = document.createElement("div")
+      let img = document.createElement("img")
+      img.src = element.children[0].src
+      img.alt = element.children[0].alt
+      img.id ="preview_img"
+      div.id = "preview_div"
+      button = document.createElement("button")
+      button.innerHTML = `<i class="fa-solid fa-xmark"></i>`
+      button.setAttribute("onclick", "abort()")
+      button.id = "preview_button"
+      div.appendChild(img)
+      div.appendChild(button)
+      container.appendChild(div)
+
+   }
+
+   async function pic_2(element){
+      if(document.getElementById("group_preview_container")){
+         abort()
+      }
+      let container = document.querySelector(".container") 
+      let div = document.createElement("div")
+      div.id = "group_preview_container"
+      let innerdiv = document.createElement("div")
+      innerdiv.id = "group_preview_1"
+
+      let innerdiv_2 = document.createElement("div")
+      innerdiv_2.id = "group_preview_2"
+
+      
+
+      let room = element.parentElement.children[1].dataset.room
+      try{
+         let response = await fetch('/users?profile=' + room)
+         if (!response.ok){
+            throw new Error("Error getting the data")
+         }
+
+         let data = await response.json()
+         for(let i of data[0]){
+            let div_2 = document.createElement("div")
+            div_2.className = "div_group_preview"
+            
+            let img = document.createElement("img")
+            img.setAttribute("onclick", "preview_2(this)")
+            img.className = "img_group_preview"
+            img.src = `static/${i[3]}`
+            img.alt = "profile"
+            text = `<strong> ${i[1]}</strong>`
+            div_2.appendChild(img)
+            div_2.innerHTML += text
+            innerdiv_2.appendChild(div_2)
+            if(!innerdiv.hasChildNodes()){
+               let img_2 = document.createElement("img")
+               img_2.id = "img_unique_preview"
+               img_2.src = img.src;
+               button = document.createElement("button")
+               button.innerHTML = `<i class="fa-solid fa-xmark"></i>`
+               button.setAttribute("onclick", "abort()")
+               button.id = "preview_button_2"
+               innerdiv.appendChild(img_2);
+               innerdiv.appendChild(button)
+            }
+            
+            
+         }
+         
+      }
+      catch(error){
+         console.error("Error in in fetching data",error)
+      }
+      div.appendChild(innerdiv)
+      div.appendChild(innerdiv_2)
+      container.appendChild(div)
+      
+
+
+      
+   }
+   function abort(){
+      if(document.getElementById("preview_div")){
+         div = document.getElementById("preview_div")
+         if (div){
+            div.remove()
+         }
+      }
+      else if(document.getElementById("group_preview_container")){
+         let div = document.getElementById("group_preview_container")
+         div.remove()
+      }
+   }
+
+   function group(){
+         if(document.querySelectorAll(".added_user").length > 0 || document.getElementById('toggle_input').checked || document.getElementById("left_inner_header_2")){
+            return;
+         }
+         let add = document.getElementById("fa-user-plus")
+         let la = document.getElementById("left_activity")
+         let div = document.createElement("div")
+         div.id = "left_inner_header_2"
+         left.insertBefore(div,la)
+
+         input = document.createElement("input")
+         input.type = "text"
+         input.placeholder = "Group Name"
+         input.id = "group_name"
+         input.autocomplete = "off"
+         input.required = true
+         div.appendChild(input)
+
+         let button = document.createElement("button")
+         button.innerHTML = "Create"
+         button.id = "create_button"
+         button.setAttribute("onclick","create()")
+         div.appendChild(button)
+
+         let button_2 = document.createElement("button")
+         button_2.innerHTML = "Cancel"
+         button_2.id = "cancel_button"
+         button_2.onclick = cancel;
+         div.appendChild(button_2)
+
+         for(let child of la.children){
+            let check = document.createElement("input")
+            check.type = "checkbox"
+            check.name = "added_user"
+            check.value = child.children[1].dataset.receiver
+            check.setAttribute("class","added_user")
+            child.insertBefore(check,child.children[0])
+         }
+         
+
+      }
+
+      async function create(){
+         let name = document.getElementById("group_name")
+         let group = document.getElementById("toggle_input")
+         let input = document.getElementsByClassName("added_user")
+
+         let valid = Array.from(input).filter(check => check.checked)
+
+         let values = []
+
+         for (let data of valid){
+            values.push(data.value)
+
+         }
+
+         if(valid.length < 1){
+            alert("Please select at least one user!")
+            return;
+         }
+
+         if(name.value.trim() == ""){
+            alert("Group name required!")
+            return;
+            
+         }
+         try{
+            let response = await fetch('/create_group',{
+            method:'POST',
+            headers: {"Content-Type":'application/json'},
+            body: JSON.stringify({
+            users: values,
+            group_name: name.value
+
+               })
+            });
+
+            if(!response.ok){
+               data = await response.json()
+               alert(data["error"])
+            }
+            
+            
+         }
+         catch(error){
+            console.error( "error in fetching data:", error)
+         }
+         
+         group.click()
+
+      }
+      
+      function cancel(){
+          let lih2 = document.getElementById("left_inner_header_2");
+          if (lih2) {
+            lih2.remove();
+          }
+          let checkbox = document.getElementsByClassName("added_user")
+          if(checkbox){
+            Array.from(checkbox).forEach(cb => cb.remove())
+          }
+      }
+
+      function preview_2(element){
+         let iup = document.getElementById("group_preview_1")
+   
+         iup.children[0].src = element.src
+
+
+      }
+      
+ </script>
+{% endblock %}

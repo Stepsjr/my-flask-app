@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block part %}
+
+<div class="pic_3"></div>
+<div class="login-form">
+    <h1>SIGN UP</h1>
+    <form action="/register" method="post" id="login-form">
+        <p class="pp">Username</p>
+        <input name="username" type="text" placeholder="Username" autocomplete="off" autofocus id="username">
+        <p class="pp">Password</p>
+        <input name="password" type="password" placeholder="Password" autocomplete="off" id="password" >
+        <p class="pp">Conform</p>
+        <input name="conformation" type="password" placeholder="Password" autocomplete="off" id="conformation" >
+        <div id="p-div">
+            <p id="p"></p>
+        </div>
+        <button  type="submit" >Sign up</button>
+        
+    </form>
+    </div>
+
+    <script>
+        document.getElementById("login-form").addEventListener("submit", async function(event){
+            
+            event.preventDefault();
+
+            let p = document.getElementById("p")
+            let username = document.getElementById("username")
+            let password = document.getElementById("password")
+            let conformation = document.getElementById("conformation")
+
+            let response = await fetch ('/register',{
+                method : "POST",
+                headers:{
+                    "Content-Type" : "application/json",
+                },
+                body: JSON.stringify({
+                    username: username.value,
+                    password: password.value,
+                    conformation: conformation.value
+                })
+
+            });
+            if(response.redirected){
+                window.location.href = response.url
+            }
+            else{
+                let valid = await response.json();
+                
+                p.innerHTML = Object.values(valid)[0];
+            }
+            
+
+        
+        });
+        
+
+
+    </script>
+
+{% endblock %}
