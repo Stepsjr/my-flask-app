@@ -33,15 +33,7 @@ db_pool = pooling.MySQLConnectionPool(
     connection_timeout=10
 )
 
-# db_pool = pooling.MySQLConnectionPool(
-#     pool_name = "mypool",
-#     pool_size = 7,
-#     user = 'root',
-#     host = 'localhost',
-#     passwd = '44443612',
-#     database = 'myapp',
-#     connection_timeout = 10
-# )
+
 
 # db_pool = pooling.MySQLConnectionPool(
 #     pool_name="mypool",
