@@ -29,7 +29,7 @@ db_pool = pooling.MySQLConnectionPool(
     host=os.environ.get("MYSQLHOST"),         # Set this in your .env, e.g., "switchyard.proxy.rlwy.net"
     passwd=os.environ.get("MYSQLPASSWORD"),           # Your Railway password
     database=os.environ.get("MYSQL_DATABASE"),        # "railway"
-    port= 3306, # Set your public port, e.g., 52785
+    port= 330666, # Set your public port, e.g., 52785
     connection_timeout=10
 )
 
