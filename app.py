@@ -22,29 +22,30 @@ socketio = SocketIO(app)
 
 load_dotenv()  # This loads variables from .env into os.environ
 
-# db_pool = pooling.MySQLConnectionPool(
-#     pool_name="mypool",
-#     pool_size=7,
-#     user=os.environ.get("MYSQLUSER"),       
-#     host=os.environ.get("MYSQLHOST"),       
-#     passwd=os.environ.get("MYSQLPASSWORD"),
-#     database=os.environ.get("MYSQL_DATABASE"),
-#     port=int(os.environ.get("MYSQLPORT", 3306)),
-#     connection_timeout=10
-# )
-
-
-
 db_pool = pooling.MySQLConnectionPool(
     pool_name="mypool",
     pool_size=7,
-    user="root",  # Railway MYSQLUSER (should be 'root')
-    host="switchyard.proxy.rlwy.net",  # Replace with your public hostname from MYSQL_PUBLIC_URL
-    passwd="WrhrerqcRdqExsPthQCncURJvfyiDTcL",  # Your MYSQL_ROOT_PASSWORD
-    database="railway",  # Your MYSQL_DATABASE
-    port=52785,  # Use the public port if given in MYSQL_PUBLIC_URL; if not, then 3306
+    user=os.environ.get("MYSQLUSER"),       
+    host=os.environ.get("MYSQLHOST"),       
+    passwd=os.environ.get("MYSQLPASSWORD"),
+    database=os.environ.get("MYSQL_DATABASE"),
+    # port=int(os.environ.get("MYSQLPORT", 3306)),
+    port=52785,
     connection_timeout=10
 )
+
+
+
+# db_pool = pooling.MySQLConnectionPool(
+#     pool_name="mypool",
+#     pool_size=7,
+#     user="root",  # Railway MYSQLUSER (should be 'root')
+#     host="switchyard.proxy.rlwy.net",  # Replace with your public hostname from MYSQL_PUBLIC_URL
+#     passwd="WrhrerqcRdqExsPthQCncURJvfyiDTcL",  # Your MYSQL_ROOT_PASSWORD
+#     database="railway",  # Your MYSQL_DATABASE
+#     port=52785,  # Use the public port if given in MYSQL_PUBLIC_URL; if not, then 3306
+#     connection_timeout=10
+# )
 
 
 
