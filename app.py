@@ -25,11 +25,11 @@ load_dotenv()  # This loads variables from .env into os.environ
 db_pool = pooling.MySQLConnectionPool(
     pool_name="mypool",
     pool_size=7,
-    user=os.environ.get("MYSQLUSER"),               # Should be "root"
-    host=os.environ.get("MYSQLHOST"),         # Set this in your .env, e.g., "switchyard.proxy.rlwy.net"
-    passwd=os.environ.get("MYSQLPASSWORD"),           # Your Railway password
-    database=os.environ.get("MYSQL_DATABASE"),        # "railway"
-    port= 3306, # Set your public port, e.g., 52785
+    user=os.environ.get("MYSQLUSER"),       
+    host=os.environ.get("MYSQLHOST"),       
+    passwd=os.environ.get("MYSQLPASSWORD"),
+    database=os.environ.get("MYSQL_DATABASE"),
+    port=int(os.environ.get("MYSQLPORT", 3306)),
     connection_timeout=10
 )
 
